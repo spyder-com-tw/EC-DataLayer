@@ -32,7 +32,7 @@ ___TEMPLATE_PARAMETERS___
   {
     "type": "SELECT",
     "name": "Ec_Event",
-    "displayName": "電子商務事件 - Events",
+    "displayName": "電子商務事件 - EC Events",
     "macrosInSelect": false,
     "selectItems": [
       {
@@ -109,7 +109,7 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true,
-    "help": "下拉選擇電子商務事件。"
+    "help": "下拉選擇你要push的電子商務事件。"
   },
   {
     "type": "TEXT",
@@ -131,11 +131,11 @@ ___TEMPLATE_PARAMETERS___
     "displayName": "ecommerce",
     "simpleTableColumns": [
       {
-        "defaultValue": "",
+        "defaultValue": "value / transaction_id / currency / coupon",
         "displayName": "key",
         "name": "name",
         "type": "TEXT",
-        "valueHint": "value / transaction_id / currency / coupon (擇一)",
+        "valueHint": "放入你的事件價值CSS變數。",
         "isUnique": false
       },
       {
@@ -143,10 +143,9 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "value",
         "name": "value",
         "type": "TEXT",
-        "valueHint": "CSS Selector - Value"
+        "valueHint": "擇一key值搭配value值。"
       }
-    ],
-    "help": "對應GA4電子商務文件中的ecommerce物件。"
+    ]
   },
   {
     "type": "SIMPLE_TABLE",
@@ -157,18 +156,15 @@ ___TEMPLATE_PARAMETERS___
         "defaultValue": "",
         "displayName": "key",
         "name": "name",
-        "type": "TEXT",
-        "valueHint": "item_id / item_name / price / quantity /item_brand"
+        "type": "TEXT"
       },
       {
         "defaultValue": "",
         "displayName": "value",
         "name": "value",
-        "type": "TEXT",
-        "valueHint": "CSS Selector - Value"
+        "type": "TEXT"
       }
-    ],
-    "help": "對應GA4電子商務文件中的items陣列物件。"
+    ]
   }
 ]
 
@@ -181,13 +177,16 @@ const makeTableMap = require('makeTableMap');
 const query = require('queryPermission');
 const log = require('logToConsole');
 var dLayer = {};
-const event = {'ecommerce':{}};
-const item = {"items":[]};
-const ec = {ecommerce: null};
+const event = {'ecommerce':{
+  "items":[{}]
+  }
+ };
+//const item = {"items":[]};
 
 const combined = function(){
     const obj = {},
         il = arguments.length;
+      
   let i = 0,
       key;
   for (; i < il; i++) {
@@ -201,21 +200,29 @@ const combined = function(){
   return obj;
 };
 
+const combined_item = function(item_len){
+  const obj = {};
+  for (var index = 0; index<item_len; index++){
+    obj[data.itemVar[index].name] = data.itemVar[index].value ;
+    //log(obj);
+  }
+  event.ecommerce.items = [obj];
+};
 
 dLayer =  {'event' :  data.Ec_Event };
 if(data.Ec_Event === "custome_event"){
   dLayer =  {'event':data.custome_event};
 }
-
+var item_len = data.itemVar.length;
 
 event.ecommerce = data.eventVar ? makeTableMap(data.eventVar, 'name', 'value'):{};
-item.items[0] =  data.itemVar ? makeTableMap(data.itemVar, 'name', 'value'):{};
+combined_item(data.itemVar.length);
+log(event);
 
-const result = combined(dLayer,event,item);
+
+const result = combined(dLayer,event);
 if (query('access_globals', 'readwrite', 'dataLayer')) {
-  dataLayerPush(ec); //init
   dataLayerPush(result);
-  log("dataLayer:", result);
 }
 data.gtmOnSuccess();
 
@@ -300,6 +307,9 @@ ___WEB_PERMISSIONS___
         }
       ]
     },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
     "isRequired": true
   }
 ]
@@ -323,6 +333,6 @@ scenarios:
 
 ___NOTES___
 
-Created on 3/29/2024, 10:53:23 AM
+Created on 3/28/2024, 5:19:11 PM
 
 
