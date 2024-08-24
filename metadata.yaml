@@ -2,4 +2,4 @@ homepage: "https://dspyder.tw/"
 documentation: "https://github.com/spyder-com-tw/EcDataLayerGTM"
 versions:
   - sha: 020f0e41ec6f29166b530f349c8ddca01660960d
-    changeNotes: Initial release.
+    changeNotes: Fixed the 404 error links
